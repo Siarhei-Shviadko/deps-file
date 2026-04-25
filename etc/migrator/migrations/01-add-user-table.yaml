@@ -1,0 +1,28 @@
+databaseChangeLog:
+- changeSet:
+    id: 1
+    author: Domain Service Generator
+    changes:
+    - createTable:
+        tableName: user
+        columns:
+        - column:
+            constraints:
+              primaryKey: true
+              primaryKeyName: user_id
+            name: user_id
+            type: VARCHAR
+        - column:
+            constraints:
+              nullable: false
+            name: first_name
+            type: VARCHAR
+        - column:
+            constraints:
+              nullable: false
+            name: last_name
+            type: VARCHAR
+
+    rollback:
+    - dropTable:
+        tableName: user

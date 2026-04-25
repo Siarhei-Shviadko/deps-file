@@ -1,0 +1,15 @@
+databaseChangeLog:
+    - include:
+        file: ./migrations/01-add-user-table.yaml
+    - include:
+        file: ./migrations/02-add-file-table.yaml
+    - include:
+        file: ./migrations/03-add-group-table.yaml
+    - include:
+        file: ./migrations/04-add-label-table.yaml
+    - include:
+        file: ./migrations/05-add-file-label-table.yaml
+    - include:
+        file: ./migrations/06-add-file-reference-table.yaml
+    - include:
+        file: ./migrations/07-add-saga-table.yaml

@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 04-add-label-table
+      author: Vitali Sakolski
+      changes:
+        - createTable:
+            tableName: label
+            columns:
+              - column:
+                  name: label_id
+                  type: SERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: content
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+      rollback:
+        - dropTable:
+            tableName: label

@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 03-add-group-table
+      author: Vitali Sakolski
+      changes:
+        - createTable:
+            tableName: group
+            columns:
+              - column:
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: group_id
+                  name: group_id
+                  type: VARCHAR(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: tenant_id
+                  type: VARCHAR(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_deleted
+                  type: BOOLEAN
+
+      rollback:
+        - dropTable:
+            tableName: group

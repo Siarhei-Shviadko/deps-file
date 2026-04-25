@@ -1,0 +1,68 @@
+databaseChangeLog:
+  - changeSet:
+      id: 02-add-file-table
+      author: Vitali Sakolski
+      changes:
+        - createTable:
+            tableName: file
+            columns:
+              - column:
+                  name: file_id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: path
+                  type: VARCHAR(1000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: state
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processing_params
+                  type: JSONB
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: true
+
+        - createIndex:
+            tableName: file
+            indexName: idx_file_tenant_id
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            tableName: file
+            indexName: idx_file_state
+            columns:
+              - column:
+                  name: state
+
+      rollback:
+        - dropTable:
+            tableName: file

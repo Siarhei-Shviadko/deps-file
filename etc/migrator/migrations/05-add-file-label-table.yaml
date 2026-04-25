@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 05-add-file-label-junction-table
+      author: Vitali Sakolski
+      changes:
+        - createTable:
+            tableName: file_label
+            columns:
+              - column:
+                  name: file_id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_file_label
+                    nullable: false
+              - column:
+                  name: label_id
+                  type: INTEGER
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_file_label
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: file_label
+            baseColumnNames: file_id
+            referencedTableName: file
+            referencedColumnNames: file_id
+            constraintName: fk_file_label_file_id
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: file_label
+            baseColumnNames: label_id
+            referencedTableName: label
+            referencedColumnNames: label_id
+            constraintName: fk_file_label_label_id
+            onDelete: CASCADE
+
+        - addUniqueConstraint:
+            tableName: file_label
+            columnNames: file_id, label_id
+            constraintName: uk_file_label_file_id_label_id
+
+      rollback:
+        - dropTable:
+            tableName: file_label

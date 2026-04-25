@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 06-add-file-reference-table
+      author: Vitali Sakolski
+      changes:
+        - createTable:
+            tableName: file_reference
+            columns:
+              - column:
+                  name: file_id
+                  type: VARCHAR(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: entity_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entity_id
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entity_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: file_reference
+            baseColumnNames: file_id
+            referencedTableName: file
+            referencedColumnNames: file_id
+            constraintName: fk_file_reference_file_id
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: file_reference
+            indexName: idx_file_reference_entity_id
+            columns:
+              - column:
+                  name: entity_id
+
+      rollback:
+        - dropTable:
+            tableName: file_reference
+

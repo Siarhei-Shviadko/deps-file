@@ -1,0 +1,16 @@
+version: "3.4"
+
+services:
+  api:
+    image: "file-dev"
+    container_name: "deps-file"
+    command: python -m deps_file serve
+
+  consumer:
+    image: "file-dev"
+    container_name: "deps-file-consumer"
+    command: python -m deps_file dispatch
+
+  migrator:
+    image: "file-migrator"
+    container_name: "deps-file-migrator"

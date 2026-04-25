@@ -1,0 +1,53 @@
+PROJECT_NAME = "file"
+DESCRIPTION = "Short description of project"
+V1_PREFIX = "/v1"
+BASE_API_PREFIX = "/api/file"
+V1_API_PREFIX = BASE_API_PREFIX + V1_PREFIX
+SWAGGER_DOC_URL = "/docs"
+
+DOCUMENTS_EXCHANGER = "Documents"
+
+EVENTS_QUEUE = "file-events"
+COMMANDS_QUEUE = "file-commands"
+
+COMMANDS_CHANNEL = "FileCommands"
+COMMANDS_REPLIES_CHANNEL = "FileCommandsReplies"
+
+CLASSIFICATION_COMMANDS_CHANNEL = "ClassificationCommands"
+DOCUMENT_COMMANDS_CHANNEL = "DocumentCommands"
+BATCH_COMMANDS_CHANNEL = "BatchCommands"
+SPLIT_COMMANDS_CHANNEL = "SplitCommands"
+
+USER_DESTINATION = "User"
+GROUP_DESTINATION = "Group"
+FILE_DESTINATION = "File"
+
+DEFAULT_ENGINE = "TESSERACT"
+
+DEFAULT_PAGE_NUMBER = 1
+DEFAULT_PAGE_SIZE = 20
+MAX_PAGE_SIZE = 100
+
+PAGINATION_OFFSET_BASE = 1
+
+DEFAULT_SORT_FIELD = "createdAt"  # API uses camelCase
+DEFAULT_SORT_DIRECTION = "desc"
+
+# Table constants
+MAX_TABLE_NAME_LENGTH = 255
+MAX_TABLE_TYPE_LENGTH = 20
+
+# File domain constants
+MAX_FILE_PATH_LENGTH = 1000
+MAX_FILE_LABEL_LENGTH = 50
+
+# Label domain constants
+MAX_LABEL_CONTENT_LENGTH = 50
+
+# ID field lengths
+UUID_FIELD_LENGTH = 36
+
+# Query factory constants
+LABELS_AGGREGATE_COLUMN = "labels"
+CTE_FILE_ID_COLUMN = "cte_file_id"
+CTE_FILES_TO_SELECT = "files_to_select"

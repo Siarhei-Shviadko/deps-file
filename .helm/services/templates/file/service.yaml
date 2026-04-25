@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: file
+  labels:
+    {{- include "deps-file.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.file.service.type }}
+  ports:
+    - port: {{ .Values.file.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "deps-file.selectorLabels" . | nindent 4 }}

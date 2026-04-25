@@ -1,0 +1,71 @@
+version: "3.4"
+
+services:
+  api:
+    env_file: ./etc/file/env/.test.env
+    depends_on:
+      - test-database
+      - test-rabbitmq
+    volumes:
+      - test-cache:/tmp/test_cache
+      - ./src/deps_file:/app/deps_file
+      - ./src/tests:/app/tests
+      - ./src/poetry.lock:/app/poetry.lock
+      - ./src/pyproject.toml:/app/pyproject.toml
+      - ./src/setup.cfg:/app/setup.cfg
+      - ./vendors:/vendors
+
+  migrator:
+    env_file: ./etc/migrator/env/.test.env
+    volumes:
+      - ./etc/migrator/migrations:/app/migrations
+    depends_on:
+      - test-database
+
+  test-database:
+    image: "${REPOSITORY_URL}/base/postgres:12.5-alpine"
+    command: postgres
+      -c 'max_connections=80'
+      -c 'shared_buffers=128MB'
+      -c 'effective_cache_size=384MB'
+      -c 'maintenance_work_mem=32MB'
+      -c 'checkpoint_completion_target=0.7'
+      -c 'wal_buffers=3932kB'
+      -c 'default_statistics_target=100'
+      -c 'random_page_cost=1.1'
+      -c 'effective_io_concurrency=200'
+      -c 'work_mem=6553kB'
+      -c 'min_wal_size=1GB'
+      -c 'max_wal_size=4GB'
+      -c 'max_worker_processes=2'
+      -c 'max_parallel_workers_per_gather=1'
+      -c 'max_parallel_workers=2'
+      -c 'max_parallel_maintenance_workers=1'
+    environment:
+      - POSTGRES_HOST=test-database
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=test_deps
+      - POSTGRES_USER=deps-postgres
+      - POSTGRES_PASSWORD=deps-postgres-password
+    volumes:
+      - test-postgres:/var/lib/postgresql/data
+
+  test-rabbitmq:
+    image: "${REPOSITORY_URL}/base/rabbitmq:3.7.8-management-alpine"
+    environment:
+      - RABBITMQ_HOST=test-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_DEFAULT_VHOST=test_deps
+      - RABBITMQ_DEFAULT_USER=deps-rabbitmq
+      - RABBITMQ_DEFAULT_PASS=deps-rabbitmq-password
+      - RABBITMQ_VHOST=test_deps
+      - RABBITMQ_USER=deps-rabbitmq
+      - RABBITMQ_PASS=deps-rabbitmq-password
+    volumes:
+      - test-rabbitmq:/var/lib/rabbitmq
+
+volumes:
+  test-postgres:
+  test-rabbitmq:
+  test-cache:
+
