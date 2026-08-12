@@ -117,6 +117,54 @@ def integration_file_max_database_limits(test_file_2_tenant_id):
 
 
 @pytest.fixture
+def integration_file_for_splitting_with_proposal_review(test_file_1_tenant_id, fake_file_name, fake_file_path):
+    return FileFactory.create_for_splitting(
+        tenant_id=test_file_1_tenant_id(),
+        name=fake_file_name,
+        path=fake_file_path,
+        group_id=uuid4().hex,
+        classification_enabled=False,
+        workflow_params=WorkflowParamsDict(
+            document_type_id=None,
+            parsing_features=[],
+            needs_unifier=False,
+            needs_extraction=False,
+            assigned_to_me=False,
+            needs_splitting_proposal_review=True,
+            llm_type=None,
+            engine=None,
+            language=None,
+            metadata={},
+        ),
+        labels=None,
+    )
+
+
+@pytest.fixture
+def integration_file_for_splitting_without_proposal_review(test_file_1_tenant_id, fake_file_name, fake_file_path):
+    return FileFactory.create_for_splitting(
+        tenant_id=test_file_1_tenant_id(),
+        name=fake_file_name,
+        path=fake_file_path,
+        group_id=uuid4().hex,
+        classification_enabled=False,
+        workflow_params=WorkflowParamsDict(
+            document_type_id=None,
+            parsing_features=[],
+            needs_unifier=False,
+            needs_extraction=False,
+            assigned_to_me=False,
+            needs_splitting_proposal_review=False,
+            llm_type=None,
+            engine=None,
+            language=None,
+            metadata={},
+        ),
+        labels=None,
+    )
+
+
+@pytest.fixture
 def integration_multi_tenant_files(
     test_file_1_tenant_id,
     test_file_2_tenant_id,

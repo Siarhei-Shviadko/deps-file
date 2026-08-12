@@ -16,6 +16,7 @@ class BaseFileSplittingRequest(BaseSerializer):
     needs_unifier: bool = Field(..., alias="needsUnifier")
     needs_extraction: bool = Field(..., alias="needsExtraction")
     assigned_to_me: bool = Field(..., alias="assignedToMe")
+    needs_splitting_proposal_review: bool = Field(default=False, alias="needsSplittingProposalReview")
     metadata: dict | None = None
 
     @field_validator("engine", "language", "llm_type", "document_type_id", mode="before")
@@ -36,6 +37,7 @@ class BaseFileSplittingRequest(BaseSerializer):
             "needs_unifier": self.needs_unifier,
             "needs_extraction": self.needs_extraction,
             "assigned_to_me": self.assigned_to_me,
+            "needs_splitting_proposal_review": self.needs_splitting_proposal_review,
             "metadata": self.metadata or {},
         }
 

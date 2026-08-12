@@ -12,7 +12,6 @@ from deps_file.messaging.orchestration.processing import (
     ProcessingSaga,
     ProcessingSagaData,
 )
-from deps_file.messaging.orchestration.splitting import SplitSaga, SplitSagaData
 
 
 @pytest.fixture
@@ -84,40 +83,6 @@ def classification_suts(
             file_path=test_file_1.path,
             file_name=test_file_1.name,
             group_id=test_group_1_id(),
-            parsing_features=parsing_features,
-            engine=engine,
-            language=language,
-            llm_type=llm_type,
-            needs_unifier=False,
-            needs_extraction=True,
-            assigned_to_me=False,
-            metadata={"test_key": "test_value"},
-        ),
-    )
-
-
-@pytest.fixture
-def splitting_suts(
-    test_file_1_id,
-    tenant_id,
-    test_file_1,
-    test_group_1_id,
-    engine,
-    parsing_features,
-    language,
-    llm_type,
-    command_file_service,
-) -> SagaUnitTestSupport:
-    return SagaUnitTestSupport.given().saga(
-        SplitSaga(command_file_service=command_file_service),
-        SplitSagaData(
-            file_id=test_file_1_id(),
-            tenant_id=tenant_id(),
-            file_path=test_file_1.path,
-            file_name=test_file_1.name,
-            group_id=test_group_1_id(),
-            document_type_id=uuid.uuid4().hex,
-            classification_enabled=False,
             parsing_features=parsing_features,
             engine=engine,
             language=language,

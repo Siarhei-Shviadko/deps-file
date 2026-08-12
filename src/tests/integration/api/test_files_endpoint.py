@@ -355,6 +355,77 @@ def test_split_file__with_cross_tenant_group__returns_404(
     assert response.status_code == 404
 
 
+def test_split_file__with_needs_splitting_proposal_review__stores_true_in_workflow_params(
+    client,
+    deps_token_headers_factory,
+    unit_of_work,
+    test_group_1,
+    add_single_group,
+    splitting_test_values,
+):
+    add_single_group(test_group_1)
+
+    tenant_id = str(test_group_1.tenant_id())
+    headers = deps_token_headers_factory(tenant_id)
+
+    form_data = {
+        "groupId": str(test_group_1.id()),
+        "classificationEnabled": False,
+        "needsUnifier": False,
+        "needsExtraction": False,
+        "assignedToMe": False,
+        "needsSplittingProposalReview": True,
+    }
+
+    response = client.post(
+        f"{ENDPOINT}/split",
+        headers=headers,
+        files={"file": (splitting_test_values["file_name"], splitting_test_values["content"], "application/pdf")},
+        data=form_data,
+    )
+
+    assert response.status_code == 201
+
+    with unit_of_work:
+        file = unit_of_work.files.file_of_id(response.json()["id"], tenant_id)
+        assert file.processing_params.workflow_params["needs_splitting_proposal_review"] is True
+
+
+def test_split_file__without_needs_splitting_proposal_review__defaults_to_false(
+    client,
+    deps_token_headers_factory,
+    unit_of_work,
+    test_group_1,
+    add_single_group,
+    splitting_test_values,
+):
+    add_single_group(test_group_1)
+
+    tenant_id = str(test_group_1.tenant_id())
+    headers = deps_token_headers_factory(tenant_id)
+
+    form_data = {
+        "groupId": str(test_group_1.id()),
+        "classificationEnabled": False,
+        "needsUnifier": False,
+        "needsExtraction": False,
+        "assignedToMe": False,
+    }
+
+    response = client.post(
+        f"{ENDPOINT}/split",
+        headers=headers,
+        files={"file": (splitting_test_values["file_name"], splitting_test_values["content"], "application/pdf")},
+        data=form_data,
+    )
+
+    assert response.status_code == 201
+
+    with unit_of_work:
+        file = unit_of_work.files.file_of_id(response.json()["id"], tenant_id)
+        assert file.processing_params.workflow_params["needs_splitting_proposal_review"] is False
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -1058,6 +1129,73 @@ def test_splitting_existing_file__with_valid_request__returns_204_integration(
     with unit_of_work:
         file = unit_of_work.files.file_of_id(file_id, tenant_id())
         assert file is not None
+
+
+def test_splitting_existing_file__with_needs_splitting_proposal_review__stores_true_in_workflow_params(
+    client,
+    unit_of_work,
+    tenant_id,
+    add_single_file,
+    test_file_1,
+    add_single_group,
+):
+    file_id = str(test_file_1.id())
+    group_id = str(uuid4())
+
+    test_group = GroupFactory.create(id_=group_id, tenant_id=tenant_id(), is_deleted=False)
+
+    add_single_file(test_file_1)
+    add_single_group(test_group)
+
+    request_body = {
+        "groupId": group_id,
+        "classificationEnabled": False,
+        "needsUnifier": False,
+        "needsExtraction": False,
+        "assignedToMe": False,
+        "needsSplittingProposalReview": True,
+    }
+
+    response = client.patch(f"{ENDPOINT}/{file_id}/split", json=request_body)
+
+    assert response.status_code == 204
+
+    with unit_of_work:
+        file = unit_of_work.files.file_of_id(file_id, tenant_id())
+        assert file.processing_params.workflow_params["needs_splitting_proposal_review"] is True
+
+
+def test_splitting_existing_file__without_needs_splitting_proposal_review__defaults_to_false(
+    client,
+    unit_of_work,
+    tenant_id,
+    add_single_file,
+    test_file_1,
+    add_single_group,
+):
+    file_id = str(test_file_1.id())
+    group_id = str(uuid4())
+
+    test_group = GroupFactory.create(id_=group_id, tenant_id=tenant_id(), is_deleted=False)
+
+    add_single_file(test_file_1)
+    add_single_group(test_group)
+
+    request_body = {
+        "groupId": group_id,
+        "classificationEnabled": False,
+        "needsUnifier": False,
+        "needsExtraction": False,
+        "assignedToMe": False,
+    }
+
+    response = client.patch(f"{ENDPOINT}/{file_id}/split", json=request_body)
+
+    assert response.status_code == 204
+
+    with unit_of_work:
+        file = unit_of_work.files.file_of_id(file_id, tenant_id())
+        assert file.processing_params.workflow_params["needs_splitting_proposal_review"] is False
 
 
 def test_get_file_content__existing_file__returns_content_integration(

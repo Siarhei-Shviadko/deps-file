@@ -1,11 +1,7 @@
 import pytest
 
 from deps_file.constants import COMMANDS_CHANNEL, COMMANDS_REPLIES_CHANNEL
-from deps_file.domain.model import (
-    ClassifyFileDomain,
-    ProcessFileDomain,
-    SplitFileDomain,
-)
+from deps_file.domain.model import ClassifyFileDomain, ProcessFileDomain, SplitFile
 from deps_file.messaging.handlers import (
     import_file_for_classification_handler,
     import_file_for_processing_handler,
@@ -129,9 +125,9 @@ def test_import_file__for_splitting_handler(
         == import_file_for_splitting_command_message.command.workflow_params
     )
 
-    assert channel == COMMANDS_CHANNEL
-    assert reply_to == COMMANDS_REPLIES_CHANNEL
-    assert isinstance(command, SplitFileDomain)
+    assert channel == SplitFile.COMMAND_CHANNEL
+    assert reply_to == SplitFile.REPLY_CHANNEL
+    assert isinstance(command, SplitFile)
     assert command.path == import_file_for_splitting_command_message.command.file_path
     assert command.group_id == import_file_for_splitting_command_message.command.group_id
     assert command.classification_enabled == import_file_for_splitting_command_message.command.classification_enabled

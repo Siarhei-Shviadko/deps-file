@@ -7,3 +7,4 @@ class Status(ExtendedEnum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    SPLITTING_REVIEW = "splittingReview"

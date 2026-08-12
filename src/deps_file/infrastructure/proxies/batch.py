@@ -20,6 +20,7 @@ class BatchProxy(IBatchProxy, GenericProxy):
         self,
         batch_name: str,
         files: list[BatchFileDict],
+        source_file_id: str,
         group_id: str | None = None,
         metadata: dict | None = None,
         engine: str | None = None,
@@ -52,7 +53,7 @@ class BatchProxy(IBatchProxy, GenericProxy):
 
             files_data.append(file_data)
 
-        data = dict[str, Any]({"name": batch_name, "files": files_data})
+        data = dict[str, Any]({"name": batch_name, "files": files_data, "sourceFileId": source_file_id})
 
         if group_id is not None:
             data["groupId"] = group_id

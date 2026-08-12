@@ -107,6 +107,7 @@ class File:
             classification_enabled=classification_enabled,
             splitting_enabled=True,
         )
+        self._set_processing_state()
         self.generate_pipeline_command()
 
     def restart(self) -> None:
@@ -139,6 +140,10 @@ class File:
     def fail_splitting(self, error_message: str) -> None:
         self._set_failed_state(error_message, ErrorCode.FAIL_SPLITTING)
         self._add_file_processed_event(Purpose.SPLITTING)
+
+    def set_splitting_review(self) -> None:
+        self.state = State(Status.SPLITTING_REVIEW)
+        self._add_file_state_updated_event()
 
     def add_document_reference(self, entity_id: str, entity_name: str):
         self._add_reference(ReferenceType.DOCUMENT, entity_id, entity_name)

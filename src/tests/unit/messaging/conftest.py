@@ -5,16 +5,18 @@ from deps_message_flow.commands.consumer.command_message import CommandMessage
 from deps_message_flow.events.subscriber.domain_event_envelope import (
     DomainEventEnvelope,
 )
-from faker.proxy import Faker
 
-from deps_file.domain.model.file.commands import ClassifyFileDomain, SplitFileDomain
+from deps_file.domain.model.file.commands import ClassifyFileDomain
 from deps_file.messaging.commands import (
     DeleteFile,
     ImportFileForClassification,
     ImportFileForProcessing,
     ImportFileForSplitting,
 )
-from tests.shared_fixtures.group import test_group_1
+from deps_file.messaging.events import (
+    SplitFileExecuted,
+    SplittingProposalAwaitingReview,
+)
 
 
 @pytest.fixture
@@ -137,26 +139,6 @@ def mock_saga_file_service(mocker, containers):
 
 
 @pytest.fixture
-def split_file_command(faker: Faker):
-    return SplitFileDomain(
-        file_id=faker.uuid4(),
-        file_name=faker.file_name(extension="pdf"),
-        path=faker.file_path(),
-        group_id=faker.uuid4(),
-        document_type_id=faker.uuid4(),
-        classification_enabled=faker.boolean(),
-        engine=faker.word(),
-        language=faker.word(),
-        parsing_features=faker.pylist(nb_elements=2, allowed_types=[str]),
-        llm_type=faker.word(),
-        needs_unifier=faker.boolean(),
-        needs_extraction=faker.boolean(),
-        assigned_to_me=faker.boolean(),
-        metadata=faker.pydict(nb_elements=2, allowed_types=[str, int]),
-    )
-
-
-@pytest.fixture
 def split_file_cm(mocker, split_file_command):
     cm = mocker.Mock(CommandMessage)
     cm.command = split_file_command
@@ -170,3 +152,37 @@ def delete_file_command_message(mocker, test_file_1, test_file_2):
     cm.command = DeleteFile(file_ids=[str(test_file_1.id()), str(test_file_2.id())])
 
     return cm
+
+
+@pytest.fixture
+def split_file_executed_envelope(mocker, test_file_for_splitting):
+    dee = mocker.Mock(DomainEventEnvelope)
+    dee.event = SplitFileExecuted(
+        file_id=test_file_for_splitting.id(),
+        batch_id="batch_123",
+        error_type=None,
+        error_message=None,
+    )
+
+    return dee
+
+
+@pytest.fixture
+def split_file_executed_failure_envelope(mocker, test_file_for_splitting):
+    dee = mocker.Mock(DomainEventEnvelope)
+    dee.event = SplitFileExecuted(
+        file_id=test_file_for_splitting.id(),
+        batch_id=None,
+        error_type="processing_error",
+        error_message="splitting failed",
+    )
+
+    return dee
+
+
+@pytest.fixture
+def splitting_proposal_awaiting_review_envelope(mocker, test_file_for_splitting):
+    dee = mocker.Mock(DomainEventEnvelope)
+    dee.event = SplittingProposalAwaitingReview(test_file_for_splitting.id())
+
+    return dee

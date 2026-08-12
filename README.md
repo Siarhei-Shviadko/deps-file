@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://github_host/deps-file.git
+git remote add origin https://git.epam.com/epm-deps/deps-file.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://github_host/deps-file/-/settings/integrations)
+- [ ] [Set up project integrations](https://git.epam.com/epm-deps/deps-file/-/settings/integrations)
 
 ## Collaborate with your team
 

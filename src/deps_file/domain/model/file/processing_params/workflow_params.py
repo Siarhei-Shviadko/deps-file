@@ -8,6 +8,7 @@ class WorkflowParamsDict(TypedDict):
     needs_unifier: bool
     needs_extraction: bool
     assigned_to_me: bool
+    needs_splitting_proposal_review: bool
     llm_type: str | None
     engine: str | None
     language: str | None

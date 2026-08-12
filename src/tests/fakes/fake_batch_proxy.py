@@ -16,6 +16,7 @@ class FakeBatchProxy(IBatchProxy):
         self,
         batch_name: str,
         files: list[BatchFileDict],
+        source_file_id: str,
         group_id: str | None = None,
         metadata: dict | None = None,
         engine: str | None = None,
@@ -34,6 +35,7 @@ class FakeBatchProxy(IBatchProxy):
                 "language": language,
                 "llm_type": llm_type,
                 "parsing_features": parsing_features,
+                "source_file_id": source_file_id,
             }
         )
 

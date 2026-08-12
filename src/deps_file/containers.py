@@ -50,7 +50,7 @@ from deps_file.infrastructure.unit_of_work import (
     AbstractUnitOfWork,
     SqlAlchemyUnitOfWork,
 )
-from deps_file.messaging import ClassifySaga, ProcessingSaga, SplitSaga
+from deps_file.messaging import ClassifySaga, ProcessingSaga
 from deps_file.messaging.dispatcher import make_message_dispatcher
 from deps_file.messaging.orchestration import make_saga_data_mapping
 
@@ -332,10 +332,6 @@ class Containers(containers.DeclarativeContainer):
         ),
         providers.Singleton(
             ClassifySaga,
-            command_file_service=command_file_service,
-        ),
-        providers.Singleton(
-            SplitSaga,
             command_file_service=command_file_service,
         ),
     )
