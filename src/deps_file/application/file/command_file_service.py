@@ -8,19 +8,11 @@ from deps_object_storage import ObjectStorage
 
 from deps_file.constants import (
     BATCH_COMMANDS_CHANNEL,
-    COMMANDS_CHANNEL,
     COMMANDS_REPLIES_CHANNEL,
     DOCUMENT_COMMANDS_CHANNEL,
 )
 from deps_file.domain.exceptions import FileNotFound, GroupNotFound
-from deps_file.domain.model import (
-    ClassifyFileDomain,
-    File,
-    FileFactory,
-    ProcessFileDomain,
-    SplitFileDomain,
-    WorkflowParamsDict,
-)
+from deps_file.domain.model import File, FileFactory, WorkflowParamsDict
 from deps_file.infrastructure.unit_of_work import AbstractUnitOfWork
 from deps_file.messaging.commands import DeleteBatchesWithDocuments, DeleteDocument
 
@@ -33,11 +25,6 @@ __all__ = ["CommandFileService"]
 
 class CommandFileService:  # noqa: WPS214
     AGGREGATE_TYPE = "File"
-    command_mapper = {
-        ProcessFileDomain: (COMMANDS_CHANNEL, COMMANDS_REPLIES_CHANNEL),
-        ClassifyFileDomain: (COMMANDS_CHANNEL, COMMANDS_REPLIES_CHANNEL),
-        SplitFileDomain: (COMMANDS_CHANNEL, COMMANDS_REPLIES_CHANNEL),
-    }
 
     def __init__(
         self,
@@ -46,7 +33,7 @@ class CommandFileService:  # noqa: WPS214
         domain_event_publisher: DomainEventPublisher,
         document_proxy: IDocumentProxy,
         batch_proxy: IBatchProxy,
-        command_producer=CommandProducer,
+        command_producer: CommandProducer,
     ) -> None:
         self._object_storage = object_storage
         self._uow = unit_of_work
@@ -274,6 +261,7 @@ class CommandFileService:  # noqa: WPS214
         batch_id, batch_name = self._create_batch(
             batch_name=batch_name,
             batch_files=batch_files,
+            source_file_id=file_id,
             group_id=group_id,
             workflow_params=file.processing_params.workflow_params,
         )
@@ -394,6 +382,17 @@ class CommandFileService:  # noqa: WPS214
 
         self._publish_events(file)
 
+    @retry_on_transaction_error()
+    def set_splitting_review(self, file_id: str, tenant_id: str) -> None:
+        with self._uow:
+            file = self._get_file_or_raise(file_id, tenant_id)
+            file.set_splitting_review()
+
+            self._uow.files.save(file)
+            self._uow.commit()
+
+        self._publish_events(file)
+
     def get_file_content(self, file_id: str, tenant_id: str) -> tuple[bytes, str]:
         with self._uow:
             file = self._get_file_or_raise(file_id, tenant_id)
@@ -426,11 +425,10 @@ class CommandFileService:  # noqa: WPS214
 
     def _send_commands(self, file: File) -> None:
         for command in file.commands:
-            channel, reply_to = self.command_mapper[type(command)]
             self._command_producer.send(
-                channel=channel,
+                channel=command.COMMAND_CHANNEL,
                 command=command,
-                reply_to=reply_to,
+                reply_to=command.REPLY_CHANNEL,
             )
 
     @staticmethod
@@ -519,12 +517,14 @@ class CommandFileService:  # noqa: WPS214
         self,
         batch_name: str,
         batch_files: list[BatchFileDict],
+        source_file_id: str,
         group_id: str | None,
         workflow_params: WorkflowParamsDict,
     ) -> tuple[str, str]:
         batch_id, batch_name = self._batch_proxy.create_batch_from_files(
             batch_name=batch_name,
             files=batch_files,
+            source_file_id=source_file_id,
             group_id=group_id,
             metadata=workflow_params["metadata"],
             engine=workflow_params["engine"],

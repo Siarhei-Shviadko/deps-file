@@ -204,3 +204,37 @@ def test_save__file_without_reference__saves_successfully(
 
     assert loaded_file is not None
     assert loaded_file.reference is None
+
+
+def test_save__needs_splitting_proposal_review_true__persists_value(
+    unit_of_work,
+    integration_file_for_splitting_with_proposal_review,
+):
+    file = integration_file_for_splitting_with_proposal_review
+
+    with unit_of_work:
+        unit_of_work.files.save(file)
+        unit_of_work.commit()
+
+    with unit_of_work:
+        loaded_file = unit_of_work.files.file_of_id(str(file.id()), str(file.tenant_id()))
+
+    assert loaded_file is not None
+    assert loaded_file.processing_params.workflow_params["needs_splitting_proposal_review"] is True
+
+
+def test_save__needs_splitting_proposal_review_false__persists_value(
+    unit_of_work,
+    integration_file_for_splitting_without_proposal_review,
+):
+    file = integration_file_for_splitting_without_proposal_review
+
+    with unit_of_work:
+        unit_of_work.files.save(file)
+        unit_of_work.commit()
+
+    with unit_of_work:
+        loaded_file = unit_of_work.files.file_of_id(str(file.id()), str(file.tenant_id()))
+
+    assert loaded_file is not None
+    assert loaded_file.processing_params.workflow_params["needs_splitting_proposal_review"] is False

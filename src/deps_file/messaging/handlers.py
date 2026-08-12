@@ -12,10 +12,10 @@ from deps_file.application import (
     SagaFileService,
 )
 from deps_file.containers import Containers
-from deps_file.domain.model import (
-    ClassifyFileDomain,
-    ProcessFileDomain,
-    SplitFileDomain,
+from deps_file.domain.model import ClassifyFileDomain, ProcessFileDomain
+from deps_file.messaging.events import (
+    SplitFileExecuted,
+    SplittingProposalAwaitingReview,
 )
 
 from .commands import (
@@ -100,33 +100,6 @@ def classify_file_handler(
 
 
 @inject
-def split_file_handler(
-    command_message: CommandMessage[SplitFileDomain],
-    tenant_id: str = Provide[Containers.current_user_tenant],
-    saga_file_service: SagaFileService = Provide[Containers.saga_file_service],
-):
-    command = command_message.command
-
-    saga_file_service.split_file(
-        file_id=command.file_id,
-        tenant_id=tenant_id,
-        file_path=command.path,
-        file_name=command.file_name,
-        group_id=command.group_id,
-        document_type_id=command.document_type_id,
-        classification_enabled=command.classification_enabled,
-        parsing_features=command.parsing_features,
-        engine=command.engine,
-        language=command.language,
-        llm_type=command.llm_type,
-        needs_unifier=command.needs_unifier,
-        needs_extraction=command.needs_extraction,
-        assigned_to_me=command.assigned_to_me,
-        metadata=command.metadata,
-    )
-
-
-@inject
 def import_file_for_processing_handler(
     command_message: CommandMessage[ImportFileForProcessing],
     tenant_id: str = Provide[Containers.current_user_tenant],
@@ -184,3 +157,37 @@ def delete_file_handler(
     command_file_service: CommandFileService = Provide[Containers.command_file_service],
 ) -> None:
     command_file_service.delete_files(ids=set(command_message.command.file_ids), tenant_id=tenant_id)
+
+
+@inject
+def split_file_executed_handler(
+    dee: DomainEventEnvelope[SplitFileExecuted],
+    tenant_id: str = Provide[Containers.current_user_tenant],
+    command_file_service: CommandFileService = Provide[Containers.command_file_service],
+) -> None:
+    event = dee.event
+    if event.error_type is None:
+        command_file_service.complete_splitting(
+            file_id=event.file_id,
+            tenant_id=tenant_id,
+            batch_id=event.batch_id,
+            batch_name=event.batch_id,
+        )
+    else:
+        command_file_service.fail_splitting(
+            file_id=event.file_id,
+            tenant_id=tenant_id,
+            error_message=event.error_message,
+        )
+
+
+@inject
+def splitting_proposal_awaiting_review_handler(
+    dee: DomainEventEnvelope[SplittingProposalAwaitingReview],
+    tenant_id: str = Provide[Containers.current_user_tenant],
+    command_file_service: CommandFileService = Provide[Containers.command_file_service],
+) -> None:
+    command_file_service.set_splitting_review(
+        file_id=dee.event.proposal_id,
+        tenant_id=tenant_id,
+    )

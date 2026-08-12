@@ -11,6 +11,7 @@ class IBatchProxy(ABC):
         self,
         batch_name: str,
         files: list[BatchFileDict],
+        source_file_id: str,
         group_id: str | None = None,
         metadata: dict | None = None,
         engine: str | None = None,

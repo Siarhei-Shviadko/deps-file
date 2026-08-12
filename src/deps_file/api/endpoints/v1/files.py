@@ -308,6 +308,11 @@ async def split_file(
     needs_unifier: bool = Form(..., validation_alias="needsUnifier", alias="needsUnifier"),
     needs_extraction: bool = Form(..., validation_alias="needsExtraction", alias="needsExtraction"),
     assigned_to_me: bool = Form(..., validation_alias="assignedToMe", alias="assignedToMe"),
+    needs_splitting_proposal_review: bool = Form(
+        default=False,
+        validation_alias="needsSplittingProposalReview",
+        alias="needsSplittingProposalReview",
+    ),
     metadata: Optional[str] = Form(
         None,
         description=(
@@ -336,6 +341,7 @@ async def split_file(
         needs_unifier=needs_unifier,
         needs_extraction=needs_extraction,
         assigned_to_me=assigned_to_me,
+        needs_splitting_proposal_review=needs_splitting_proposal_review,
         metadata=parsed_metadata,
         labels=parsed_labels,
         group_id=group_id,

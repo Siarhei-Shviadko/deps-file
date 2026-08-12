@@ -18,6 +18,7 @@ from deps_file.constants import (
     DOCUMENTS_EXCHANGER,
     EVENTS_QUEUE,
     GROUP_DESTINATION,
+    SPLITTING_PROPOSAL_DESTINATION,
 )
 from deps_file.domain.events import TestCommandReply, TestEvent
 from deps_file.domain.model import (
@@ -25,7 +26,10 @@ from deps_file.domain.model import (
     GroupCreated,
     GroupDeleted,
     ProcessFileDomain,
-    SplitFileDomain,
+)
+from deps_file.messaging.events import (
+    SplitFileExecuted,
+    SplittingProposalAwaitingReview,
 )
 
 from .commands import (
@@ -48,7 +52,8 @@ def make_message_dispatcher(subscriber: IMessageConsumer, producer: IMessageProd
         import_file_for_processing_handler,
         import_file_for_splitting_handler,
         process_file_handler,
-        split_file_handler,
+        split_file_executed_handler,
+        splitting_proposal_awaiting_review_handler,
         test_command_handler,
         test_event_handler,
     )
@@ -59,6 +64,9 @@ def make_message_dispatcher(subscriber: IMessageConsumer, producer: IMessageProd
         .on_event(GroupDeleted, group_deleted_handler)
         .and_for_aggregate_type(DOCUMENTS_EXCHANGER)
         .on_event(TestEvent, test_event_handler)
+        .and_for_aggregate_type(SPLITTING_PROPOSAL_DESTINATION)
+        .on_event(SplitFileExecuted, split_file_executed_handler)
+        .on_event(SplittingProposalAwaitingReview, splitting_proposal_awaiting_review_handler)
         .for_queue(EVENTS_QUEUE)
         .build()
     )
@@ -69,7 +77,6 @@ def make_message_dispatcher(subscriber: IMessageConsumer, producer: IMessageProd
         .and_from_channel(COMMANDS_CHANNEL)
         .on_message(ProcessFileDomain, process_file_handler)
         .on_message(ClassifyFileDomain, classify_file_handler)
-        .on_message(SplitFileDomain, split_file_handler)
         .on_message(ImportFileForProcessing, import_file_for_processing_handler)
         .on_message(ImportFileForClassification, import_file_for_classification_handler)
         .on_message(ImportFileForSplitting, import_file_for_splitting_handler)

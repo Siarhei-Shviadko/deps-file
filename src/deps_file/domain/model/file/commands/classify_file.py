@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from deps_message_flow.commands.common import Command
 
@@ -8,6 +8,9 @@ __all__ = ["ClassifyFileDomain"]
 
 @dataclass
 class ClassifyFileDomain(Command):
+    COMMAND_CHANNEL: ClassVar[str] = "FileCommands"
+    REPLY_CHANNEL: ClassVar[str] = "FileCommandsReplies"
+
     group_id: str
     file_id: str | None = None
     file_name: str | None = None

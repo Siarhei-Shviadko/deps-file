@@ -8,6 +8,7 @@ from deps_file.constants import (
     COMMANDS_CHANNEL,
     COMMANDS_REPLIES_CHANNEL,
     DOCUMENT_COMMANDS_CHANNEL,
+    SPLIT_COMMANDS_CHANNEL,
 )
 from deps_file.domain.exceptions import (
     FileIsNotFailed,
@@ -20,11 +21,15 @@ from deps_file.domain.model import (
     ProcessFileDomain,
     ProcessingParamsDict,
     ReferenceType,
-    SplitFileDomain,
     TenantId,
 )
-from deps_file.domain.model.file.events import FileProcessed, FileStateUpdated, Purpose
-from deps_file.domain.model.file.state import Status
+from deps_file.domain.model.file import (
+    FileProcessed,
+    FileStateUpdated,
+    Purpose,
+    SplitFile,
+    Status,
+)
 from deps_file.messaging.commands import DeleteBatchesWithDocuments, DeleteDocument
 from tests.factories import FileFactory, ProcessingParamsFactory
 
@@ -563,9 +568,9 @@ def test_split__sends_split_command_with_correct_data(
     assert len(fake_command_producer.sent_commands) == 1
     channel, command, reply_to = fake_command_producer.sent_commands[0]
 
-    assert channel == COMMANDS_CHANNEL
-    assert reply_to == COMMANDS_REPLIES_CHANNEL
-    assert isinstance(command, SplitFileDomain)
+    assert channel == SplitFile.COMMAND_CHANNEL
+    assert reply_to == SplitFile.REPLY_CHANNEL
+    assert isinstance(command, SplitFile)
     assert command.file_id == str(created_file.id())
     assert command.file_name == file_name
     assert command.group_id == group_id
@@ -777,10 +782,10 @@ def test_split__with_workflow_params__stores_correct_params(
     assert len(fake_command_producer.sent_commands) == 1
     channel, command, reply_to = fake_command_producer.sent_commands[0]
 
-    assert channel == COMMANDS_CHANNEL
-    assert reply_to == COMMANDS_REPLIES_CHANNEL
+    assert channel == SplitFile.COMMAND_CHANNEL
+    assert reply_to == SplitFile.REPLY_CHANNEL
 
-    assert isinstance(command, SplitFileDomain)
+    assert isinstance(command, SplitFile)
     assert command.engine == engine
     assert command.language == language
 
@@ -1198,9 +1203,9 @@ def test_send_commands__split_file__sends_split_file_domain_command_correctly(
     assert len(fake_command_producer.sent_commands) == 1
     channel, command, reply_to = fake_command_producer.sent_commands[0]
 
-    assert channel == COMMANDS_CHANNEL
-    assert reply_to == COMMANDS_REPLIES_CHANNEL
-    assert isinstance(command, SplitFileDomain)
+    assert channel == SplitFile.COMMAND_CHANNEL
+    assert reply_to == SplitFile.REPLY_CHANNEL
+    assert isinstance(command, SplitFile)
     assert command.file_id == str(created_file.id())
     assert command.file_name == file_name
     assert command.path == created_file.path
@@ -1262,9 +1267,9 @@ def test_send_commands__split_file_existing__sends_split_file_domain_command_cor
     assert len(fake_command_producer.sent_commands) == 1
     channel, command, reply_to = fake_command_producer.sent_commands[0]
 
-    assert channel == COMMANDS_CHANNEL
-    assert reply_to == COMMANDS_REPLIES_CHANNEL
-    assert isinstance(command, SplitFileDomain)
+    assert channel == SplitFile.COMMAND_CHANNEL
+    assert reply_to == SplitFile.REPLY_CHANNEL
+    assert isinstance(command, SplitFile)
     assert command.file_id == file_id
     assert command.file_name == test_file.name
     assert command.path == test_file.path
@@ -1408,8 +1413,9 @@ def test_create_batch_from_file__with_valid_file__creates_batch_and_saves_refere
     test_workflow_params,
     test_group_1_id,
 ):
+    file_id = test_file_1.id()
     result_batch_id = command_file_service.create_batch_from_file(
-        file_id=str(test_file_1.id()),
+        file_id=file_id,
         tenant_id=tenant_id(),
         batch_name=batch_name,
         batch_files=file_info_params,
@@ -1427,6 +1433,7 @@ def test_create_batch_from_file__with_valid_file__creates_batch_and_saves_refere
     assert created_batch["language"] == test_workflow_params.get("language")
     assert created_batch["llm_type"] == test_workflow_params.get("llm_type")
     assert created_batch["parsing_features"] == test_workflow_params.get("parsing_features")
+    assert created_batch["source_file_id"] == file_id
 
     with fake_unit_of_work:
         saved_file = fake_unit_of_work.files.file_of_id(str(test_file_1.id()), tenant_id())
@@ -1596,9 +1603,9 @@ def test_restart_file__with_failed_file__resends_splitting_command(
 
     assert len(fake_command_producer.sent_commands) == 1
     channel, command, reply_to = fake_command_producer.sent_commands[0]
-    assert channel == COMMANDS_CHANNEL
-    assert reply_to == COMMANDS_REPLIES_CHANNEL
-    assert isinstance(command, SplitFileDomain)
+    assert channel == SplitFile.COMMAND_CHANNEL
+    assert reply_to == SplitFile.REPLY_CHANNEL
+    assert isinstance(command, SplitFile)
     assert command.file_id == str(test_file_for_splitting.id())
     assert command.file_name == test_file_for_splitting.name
     assert command.path == test_file_for_splitting.path
@@ -1797,3 +1804,26 @@ def test_fail_splitting__publishes_file_state_updated_event(
     assert event.state == Status.FAILED.value
     assert event.metadata == test_file_for_splitting.processing_params.workflow_params["metadata"]
     assert event.error_message == error_message
+
+
+@pytest.mark.usefixtures("save_test_file_for_splitting")
+def test_set_splitting_review__publishes_file_state_updated_event(
+    command_file_service,
+    tenant_id,
+    test_file_for_splitting,
+    fake_domain_event_publisher,
+):
+    command_file_service.set_splitting_review(str(test_file_for_splitting.id()), tenant_id())
+
+    event = fake_domain_event_publisher.last_published.events[0]
+    assert isinstance(event, FileStateUpdated)
+    assert event.file_id == str(test_file_for_splitting.id())
+    assert event.state == Status.SPLITTING_REVIEW.value
+
+
+def test_set_splitting_review__with_nonexistent_file__raises_file_not_found(
+    command_file_service,
+    tenant_id,
+):
+    with pytest.raises(FileNotFound):
+        command_file_service.set_splitting_review(str(uuid4()), tenant_id())

@@ -2,7 +2,7 @@ from deps_file.domain.model.group import GroupId
 from deps_file.domain.model.shared.guards import Guard, ImmutableCheck
 
 from ...shared import Command
-from ..commands import ClassifyFileDomain, ProcessFileDomain, SplitFileDomain
+from ..commands import ClassifyFileDomain, ProcessFileDomain, SplitFile
 from .workflow_params import WorkflowParamsDict
 
 __all__ = ["ProcessingParams"]
@@ -52,10 +52,10 @@ class ProcessingParams:
 
     def generate_command(self) -> Command:
         if self._check_splitting_command():
-            return self._add_splitting_command()
+            return self._generate_splitting_command()
         elif self._check_classification_command():
-            return self._add_classification_command()
-        return self._add_processing_command()
+            return self._generate_classification_command()
+        return self._generate_processing_command()
 
     def _check_splitting_command(self) -> bool:
         return bool(self.splitting_enabled and self.group_id)
@@ -63,8 +63,8 @@ class ProcessingParams:
     def _check_classification_command(self) -> bool:
         return bool(self.classification_enabled and self.group_id and not self.splitting_enabled)
 
-    def _add_splitting_command(self) -> SplitFileDomain:
-        return SplitFileDomain(
+    def _generate_splitting_command(self) -> SplitFile:
+        return SplitFile(
             group_id=self.group_id(),
             classification_enabled=self.classification_enabled,
             document_type_id=self.workflow_params.get("document_type_id"),
@@ -75,10 +75,11 @@ class ProcessingParams:
             needs_unifier=self.workflow_params.get("needs_unifier", False),
             needs_extraction=self.workflow_params.get("needs_extraction", True),
             assigned_to_me=self.workflow_params.get("assigned_to_me", False),
+            needs_splitting_proposal_review=self.workflow_params.get("needs_splitting_proposal_review", False),
             metadata=self.metadata,
         )
 
-    def _add_classification_command(self) -> ClassifyFileDomain:
+    def _generate_classification_command(self) -> ClassifyFileDomain:
         return ClassifyFileDomain(
             group_id=self.group_id(),
             parsing_features=self.workflow_params.get("parsing_features"),
@@ -91,7 +92,7 @@ class ProcessingParams:
             metadata=self.metadata,
         )
 
-    def _add_processing_command(self) -> ProcessFileDomain:
+    def _generate_processing_command(self) -> ProcessFileDomain:
         return ProcessFileDomain(
             parsing_features=self.workflow_params.get("parsing_features"),
             engine=self.workflow_params.get("engine"),
