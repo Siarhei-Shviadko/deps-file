@@ -9,5 +9,6 @@ __all__ = ["SplitFileExecuted"]
 class SplitFileExecuted(Event):
     file_id: str
     batch_id: str | None
+    batch_name: str | None
     error_type: str | None
     error_message: str | None

@@ -127,7 +127,6 @@ class File:
 
     def complete_classification(self, entity_id: str, entity_name: str) -> None:
         self.add_document_reference(entity_id, entity_name)
-        self._set_completed_state()
 
     def fail_classification(self, error_message: str) -> None:
         self._set_failed_state(error_message, ErrorCode.FAIL_CLASSIFICATION)
@@ -135,7 +134,6 @@ class File:
 
     def complete_splitting(self, entity_id: str, entity_name: str) -> None:
         self.add_batch_reference(entity_id, entity_name)
-        self._set_completed_state()
 
     def fail_splitting(self, error_message: str) -> None:
         self._set_failed_state(error_message, ErrorCode.FAIL_SPLITTING)
@@ -203,6 +201,7 @@ class File:
     def _add_reference(self, entity_type: ReferenceType, entity_id: str, entity_name: str) -> None:
         self.check_reference_existence()
         self._set_reference(entity_type, entity_id, entity_name)
+        self._set_completed_state()
 
     def _set_reference(self, entity_type: ReferenceType, entity_id: str, entity_name: str) -> None:
         self.reference = Reference(entity_type=entity_type, entity_id=entity_id, entity_name=entity_name)

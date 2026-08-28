@@ -171,7 +171,7 @@ def split_file_executed_handler(
             file_id=event.file_id,
             tenant_id=tenant_id,
             batch_id=event.batch_id,
-            batch_name=event.batch_id,
+            batch_name=event.batch_name,
         )
     else:
         command_file_service.fail_splitting(
