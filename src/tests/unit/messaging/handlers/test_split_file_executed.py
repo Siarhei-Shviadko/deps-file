@@ -17,6 +17,7 @@ def test_split_file_executed_handler__success__completes_splitting(
     assert file.status == Status.COMPLETED
     assert file.reference is not None
     assert file.reference.entity_id == split_file_executed_envelope.event.batch_id
+    assert file.reference.entity_name == split_file_executed_envelope.event.batch_name
 
 
 @pytest.mark.usefixtures("save_test_file_for_splitting", "save_group")

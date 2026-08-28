@@ -160,6 +160,7 @@ def split_file_executed_envelope(mocker, test_file_for_splitting):
     dee.event = SplitFileExecuted(
         file_id=test_file_for_splitting.id(),
         batch_id="batch_123",
+        batch_name="123",
         error_type=None,
         error_message=None,
     )
@@ -173,6 +174,7 @@ def split_file_executed_failure_envelope(mocker, test_file_for_splitting):
     dee.event = SplitFileExecuted(
         file_id=test_file_for_splitting.id(),
         batch_id=None,
+        batch_name=None,
         error_type="processing_error",
         error_message="splitting failed",
     )
